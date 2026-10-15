@@ -261,7 +261,7 @@ class ResumePDF {
     private function wl($t,$s,$b) {
         $f=$b?'Helvetica-Bold':'Helvetica';
         $this->pages[$this->curPage] .= sprintf("BT /%s %.1f Tf %.1f %.1f Td (%s) Tj ET\n",$f,$s,$this->x,$this->ph-$this->y-$s,$this->es($t));
-        $this->y += $s*0.48;
+        $this->y += $s*1.2;
     }
 
     private function es($s) {
@@ -298,7 +298,7 @@ class ResumePDF {
         $this->wl($c,9,0);$this->sp(6);$this->sep();$this->sp(12);
         $this->wl(date('F j, Y'),10,0);$this->sp(14);
         $this->w('Dear '.$this->manager.',',10,0);$this->sp(10);
-        foreach($d['cover_letter'] as $ln){
+        foreach($d['cover_letter'] as $ln){ if($ln==='Dear @@MANAGER@@,')continue;
             $ln=str_replace(['@@MANAGER@@','@@COMPANY@@','@@ROLE@@','@@LOCATION@@'],[$this->manager,$this->company,$this->role,$this->location],$ln);
             if($ln===''){$this->sp(6);continue;}
             $this->cpb(20);$this->w($ln,10,0);$this->sp(2);
@@ -343,7 +343,7 @@ class ResumePDF {
     }
 
     public function output(){
-        $buf='';$offsets=[];$n=1;
+        $buf="%PDF-1.4\n";$offsets=[];$n=1;
         $fonts=['Helvetica'=>'Helvetica','Helvetica-Bold'=>'Helvetica-Bold'];
         $fontAliases=[];$fontNums=[];
         foreach($fonts as $a=>$bf){$fontAliases[$a]=$bf;$fontNums[$a]=0;}
@@ -352,7 +352,7 @@ class ResumePDF {
         $c=3;
         for($i=0;$i<count($this->pages);$i++){$pageNs[$i]=$c++;$streamNs[$i]=$c++;}
         foreach($fonts as $a=>$bf){$fontNums[$a]=$c++;}
-        $fdp=[];foreach($fonts as $a=>$bf){$fdp[]="/$a {$fontNums[$a]} 0 R";}
+        $fdp=[];foreach($fonts as $a=>$bf){$fdp[]="$a {$fontNums[$a]} 0 R";}
         $fd='<< /Font << '.implode(' ',$fdp).'>> >>';
         $o=function($n,$c)use(&$buf,&$offsets){$offsets[$n]=strlen($buf);$buf.="$n 0 obj\n$c\nendobj\n";};
         $o($catalogN,'<< /Type /Catalog /Pages '.$pagesN.' 0 R >>');

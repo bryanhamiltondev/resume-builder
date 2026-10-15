@@ -2,13 +2,13 @@
 
 **Self-hosted PHP resume builder.** Drop it on any PHP host and go.
 
-Pick a template (tech or retail), fill in the hiring manager, company, role, and location -- get a finished two-page PDF (cover letter + resume).
+Pick a template (tech or retail), fill in the hiring manager, company, role, and location -- get a finished PDF (cover letter + resume).
 
 ## Features
 
 - Two templates: **Tech** (full-stack engineer) and **Retail** (customer service)
 - Customizable: hiring manager name, company, role, location
-- Two-page PDF: cover letter + full resume
+- Clean PDF: cover letter + full resume
 - Zero dependencies -- generates raw PDF from PHP
 - Dark-themed form UI matching bryanhamilton.info
 
