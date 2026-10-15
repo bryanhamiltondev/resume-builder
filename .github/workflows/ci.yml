@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  pdf-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+  - name: Setup PHP
+    uses: shivammathur/setup-php@v2
+    with:
+      php-version: '8.3'
+
+  - name: Lint
+    run: php -l resume-builder.php
+
+  - name: Generate PDFs (tech + retail)
+    run: |
+      php -r '$_SERVER["REQUEST_METHOD"]="POST"; $_POST=["generate"=>"1","type"=>"tech","manager"=>"Jane Smith","company"=>"Acme Corp","role"=>"PHP Developer","location"=>"Chicago, IL"]; include "resume-builder.php";' > /tmp/tech.pdf
+      php -r '$_SERVER["REQUEST_METHOD"]="POST"; $_POST=["generate"=>"1","type"=>"retail","manager"=>"Jane Smith","company"=>"Acme Corp","role"=>"Team Member","location"=>"Chicago, IL"]; include "resume-builder.php";' > /tmp/retail.pdf
+
+  - name: Assert PDF structure
+    run: |
+      for f in /tmp/tech.pdf /tmp/retail.pdf; do
+        head -c 8 "$f" | grep -q "%PDF-1.4" || { echo "FAIL: $f missing %PDF-1.4 header"; exit 1; }
+        tail -c 20 "$f" | grep -q "%%EOF" || { echo "FAIL: $f missing %%EOF"; exit 1; }
+      done
+
+  - name: Assert content (pypdf)
+    run: |
+      pip install --quiet pypdf
+      python3 -c "
+      from pypdf import PdfReader
+      expected = {'/tmp/tech.pdf': 3, '/tmp/retail.pdf': 2}
+      for path, pages in expected.items():
+          r = PdfReader(path)
+          text = chr(10).join(p.extract_text() for p in r.pages)
+          assert len(r.pages) == pages, path + ': expected ' + str(pages) + ' pages, got ' + str(len(r.pages))
+          assert text.count('Dear Jane Smith,') == 1, path + ': duplicate greeting'
+          assert 'Bryan Hamilton' in text, path + ': missing content'
+          print(path, 'OK -', len(r.pages), 'pages, single greeting')
+      print('PDF smoke test passed')
+      "
