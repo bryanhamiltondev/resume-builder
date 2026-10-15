@@ -352,7 +352,7 @@ class ResumePDF {
         $c=3;
         for($i=0;$i<count($this->pages);$i++){$pageNs[$i]=$c++;$streamNs[$i]=$c++;}
         foreach($fonts as $a=>$bf){$fontNums[$a]=$c++;}
-        $fdp=[];foreach($fonts as $a=>$bf){$fdp[]="$a {$fontNums[$a]} 0 R";}
+        $fdp=[];foreach($fonts as $a=>$bf){$fdp[]="/$a {$fontNums[$a]} 0 R";}
         $fd='<< /Font << '.implode(' ',$fdp).'>> >>';
         $o=function($n,$c)use(&$buf,&$offsets){$offsets[$n]=strlen($buf);$buf.="$n 0 obj\n$c\nendobj\n";};
         $o($catalogN,'<< /Type /Catalog /Pages '.$pagesN.' 0 R >>');
